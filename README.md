@@ -7,16 +7,31 @@ mcptest 是一个用于服务器巡检和监控的工具集合，提供了一系
 - **远程服务器巡检**：支持对 CPU、内存、磁盘等资源进行巡检。
 - **服务状态检查**：可检查指定服务的运行状态和开机启动情况。
 - **网络检查**：检查网络接口和连接状态，包括监听端口和公网连接情况。
-- **防火墙配置检查**：检测防火墙类型和开放端口。
+- **防火墙配置检查**：检测防火墙类型和开放端口。 
 - **进程监控**：监控远程服务器上占用资源最多的进程。
 
 ## 安装方法
 本项目使用 [`uv`](https://github.com/astral-sh/uv) 来管理 Python 依赖和虚拟环境。
 
+### 1. 安装uv
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+### 2. 创建并激活虚拟环境
+```bash
+uv venv .venv
+source .venv/bin/activate  # Linux/macOS
+# 或
+\.venv\Scripts\activate   # Windows
+```
+
+### 3. 安装项目依赖
 确保你已经安装了 Python 3.10 或更高版本，然后使用以下命令安装项目依赖：
 ```bash
 uv pip install -r requirements.txt
 ```
+
 注：依赖信息可在 `pyproject.toml` 文件中查看。
 
 ## MCP服务器配置
