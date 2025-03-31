@@ -27,8 +27,8 @@ uv pip install -r requirements.txt
       "command": "uv",
       "args": [
         "--directory",
-        "/Users/he.ht/Documents/Cline/MCP/mytestmcp/mcptest",
-        "run",
+        "YOUR_PROJECT_PATH_HERE",  // 请替换为你的项目实际路径
+        "run", 
         "main.py"
       ],
       "env": {},
