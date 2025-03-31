@@ -19,6 +19,25 @@ uv pip install -r requirements.txt
 ```
 注：依赖信息可在 `pyproject.toml` 文件中查看。
 
+## MCP服务器配置
+要将此项目添加为MCP服务器，请在配置文件中添加以下配置：
+
+```json
+"mytestmcp/mcptest": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/Users/he.ht/Documents/Cline/MCP/mytestmcp/mcptest",
+        "run",
+        "main.py"
+      ],
+      "env": {},
+      "disabled": true,
+      "autoApprove": [
+        "list_available_tools"
+      ]
+    }
+```
 
 ## 开源协议
 本项目采用 [MIT 许可证](LICENSE)。
@@ -26,4 +45,4 @@ uv pip install -r requirements.txt
 ## 注意事项
 - 请确保远程服务器的 SSH 服务正常运行，并且你有相应的权限。
 - 在使用工具时，请根据实际情况调整参数。
-- 当前项目正在完善····
+- 当前项目正在完善···
