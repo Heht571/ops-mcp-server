@@ -1,5 +1,5 @@
 <div style="text-align: right; margin-bottom: 20px;">
-  <a href="README_zh.md" style="padding: 8px 15px; background: #007bff; color: white; text-decoration: none; border-radius: 4px;">中文</a>
+  <a href="README_zh.md" style="padding: 8px 15px; background: #007bff; color: white; text-decoration: none; border-radius: 4px;">简体中文</a>
 </div>
 
 # ops-mcp-server Project
