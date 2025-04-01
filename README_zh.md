@@ -48,7 +48,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 uv venv .venv
 source .venv/bin/activate  # Linux/macOS
 # 或
-\.venv\Scripts\activate   # Windows
+.\.venv\Scripts\activate   # Windows
 ```
 
 ### 3. 安装项目依赖
@@ -86,3 +86,4 @@ uv pip install -r requirements.txt
 - 请确保远程服务器的 SSH 服务正常运行，并且你有相应的权限。
 - 在使用工具时，请根据实际情况调整参数。
 - 当前项目正在完善····
+
