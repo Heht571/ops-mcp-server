@@ -91,7 +91,7 @@ uv pip install -r requirements.txt
       "command": "uv",
       "args": [
         "--directory",
-        "/Users/he.ht/Documents/Cline/MCP/mytestmcp/mcptest",
+        "YOUR_PROJECT_PATH_HERE",  // Replace with your actual project path
         "run",
         "network_tools.py"
       ],
