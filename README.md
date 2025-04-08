@@ -91,7 +91,7 @@ To add this project as an MCP server, add the following configuration to your se
       "command": "uv",
       "args": [
         "--directory",
-        "/Users/he.ht/Documents/Cline/MCP/mytestmcp/mcptest",
+        "YOUR_PROJECT_PATH_HERE",  // Replace with your actual project path
         "run",
         "network_tools.py"
       ],
