@@ -1,0 +1,5 @@
+mcp[cli]>=1.4.1
+paramiko>=3.5.1
+psutil>=7.0.0
+pydantic>=2.0.0
+typing-extensions>=4.0.0
