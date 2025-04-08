@@ -86,6 +86,18 @@ uv pip install -r requirements.txt
       "autoApprove": [
         "list_available_tools"
       ]
+    },
+"network_tools": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/Users/he.ht/Documents/Cline/MCP/mytestmcp/mcptest",
+        "run",
+        "network_tools.py"
+      ],
+      "env": {},
+      "disabled": false,
+      "autoApprove": []
     }
 ```
 
