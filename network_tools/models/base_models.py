@@ -1,0 +1,129 @@
+from __future__ import annotations
+from typing import Optional, Literal, TypedDict, List, Dict, Any, Union
+from pydantic import BaseModel, Field
+from enum import Enum
+
+# ======================
+# 数据模型定义
+# ======================
+class InspectionResult(BaseModel):
+    """统一巡检结果模型"""
+    status: Literal["success", "error", "unknown"] = Field(default="unknown")
+    data: dict = Field(default_factory=dict)
+    raw_outputs: dict = Field(default_factory=dict)
+    error: str = Field(default="")
+    summary: Optional[str] = None
+
+class NetworkDevice(TypedDict):
+    """网络设备信息数据结构"""
+    hostname: str
+    device_type: str
+    model: str
+    os_version: str
+    serial_number: str
+    uptime: str
+
+class SwitchPort(TypedDict):
+    """交换机端口数据结构"""
+    interface: str
+    status: str
+    vlan: str
+    duplex: str
+    speed: str
+    type: str
+    description: str
+
+class Route(TypedDict):
+    """路由表条目数据结构"""
+    destination: str
+    mask: str
+    gateway: str
+    interface: str
+    metric: str
+    protocol: str
+
+class ACLRule(TypedDict):
+    """ACL规则数据结构"""
+    rule_id: str
+    action: str
+    protocol: str
+    source: str
+    destination: str
+    port: str
+    description: str
+
+class VLAN(TypedDict):
+    """VLAN数据结构"""
+    vlan_id: str
+    name: str
+    status: str
+    ports: List[str]
+
+class OpticalModule(TypedDict):
+    """光模块数据结构"""
+    port: str
+    type: str  # SFP, SFP+, QSFP, QSFP+, etc.
+    serial_number: str
+    vendor: str
+    part_number: str
+    wavelength: str  # nm
+    distance: str  # m
+    temperature: str  # Celsius
+    tx_power: str  # dBm
+    rx_power: str  # dBm
+    status: str  # Normal, Warning, Alarm
+
+class DevicePerformance(TypedDict):
+    """设备性能数据结构"""
+    cpu_usage: str  # CPU使用率
+    memory_usage: str  # 内存使用率
+    temperature: str  # 温度
+    interface_traffic: List[Dict[str, str]]  # 接口流量信息
+    buffer_usage: str  # 缓冲区使用率
+    process_info: List[Dict[str, str]]  # 关键进程信息
+
+# ======================
+# 网络设备类型枚举
+# ======================
+class NetworkDeviceType(str, Enum):
+    """网络设备类型枚举"""
+    SWITCH = "switch"
+    ROUTER = "router"
+    FIREWALL = "firewall"
+    LOAD_BALANCER = "load_balancer"
+    WIFI_AP = "wifi_ap"
+    UNKNOWN = "unknown"
+
+# ======================
+# 设备厂商枚举
+# ======================
+class NetworkVendor(str, Enum):
+    """网络设备厂商枚举"""
+    CISCO = "cisco"
+    HUAWEI = "huawei"
+    H3C = "h3c"
+    JUNIPER = "juniper"
+    ARISTA = "arista"
+    FORTINET = "fortinet"
+    PALO_ALTO = "palo_alto"
+    CHECKPOINT = "checkpoint"
+    F5 = "f5"
+    RUIJIE = "ruijie"  # 锐捷
+    DELL = "dell"
+    HPE = "hpe"
+    ZYXEL = "zyxel"
+    UNKNOWN = "unknown"
+
+# ======================
+# 工具枚举
+# ======================
+class NetworkTools(str, Enum):
+    """网络设备工具枚举"""
+    IDENTIFY_DEVICE = "identify_network_device"
+    CHECK_SWITCH_PORTS = "check_switch_ports"
+    CHECK_ROUTER_ROUTES = "check_router_routes"
+    BACKUP_CONFIG = "backup_network_config"
+    CHECK_ACL = "check_acl_config"
+    INSPECT_VLANS = "inspect_vlans"
+    CHECK_OPTICAL_MODULES = "check_optical_modules"  # 新增光模块检查工具
+    CHECK_DEVICE_PERFORMANCE = "check_device_performance"  # 新增设备性能检查工具 

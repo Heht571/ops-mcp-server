@@ -77,9 +77,9 @@ uv pip install -r requirements.txt
       "command": "uv",
       "args": [
         "--directory",
-        "YOUR_PROJECT_PATH_HERE",  // 请替换为你的项目实际路径
+        "YOUR_PROJECT_PATH_HERE",  // Replace with your actual project path
         "run", 
-        "main.py"
+        "server_monitor.py"
       ],
       "env": {},
       "disabled": true,

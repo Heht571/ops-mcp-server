@@ -79,7 +79,7 @@ To add this project as an MCP server, add the following configuration to your se
         "--directory",
         "YOUR_PROJECT_PATH_HERE",  // Replace with your actual project path
         "run", 
-        "main.py"
+        "server_monitor.py"
       ],
       "env": {},
       "disabled": true,
