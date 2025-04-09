@@ -5,7 +5,21 @@
 # ops-mcp-server Project
 
 ## Project Overview
-ops-mcp-server is a toolset for server inspection and monitoring, providing a series of tools for remote server operations including network interface checks, service status monitoring, firewall configuration inspection, and more.
+The ops-mcp-server is an IT operations management solution for the AI era. It achieves intelligent IT operations through the seamless integration of the Multi-Agent Collaboration Protocol (MCP) and Large Language Models (LLMs). By leveraging the power of LLMs and MCP's distributed architecture, it transforms traditional IT operations into an AI-driven experience, enabling automated server monitoring, intelligent anomaly detection, and context-aware troubleshooting. The system acts as a bridge between human operators and complex IT infrastructure, providing natural language interaction for tasks ranging from routine maintenance to complex problem diagnosis, while maintaining enterprise-grade security and scalability.
+
+### Key Highlights
+- **Real-time Monitoring**: Continuous monitoring of system resources, services, and performance metrics
+- **Automated Inspection**: Scheduled and on-demand inspection of server health and security status
+- **Multi-vendor Support**: Compatible with various network device vendors including Cisco, Huawei, and H3C
+- **Container-ready**: Built-in Docker container management and monitoring capabilities
+- **Security-focused**: Integrated security scanning and risk assessment tools
+- **Plugin System**: Extensible plugin architecture for adding new monitoring and management capabilities
+
+### Demo Video
+<video width="100%" controls>
+  <source src="assets/demo.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 ## Features
 
