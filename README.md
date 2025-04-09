@@ -16,7 +16,9 @@ The ops-mcp-server is an IT operations management solution for the AI era. It ac
 - **Plugin System**: Extensible plugin architecture for adding new monitoring and management capabilities
 
 ### Demo Video
-<video src="https://github.com/Heht571/ops-mcp-server/tree/dev/assets/demo.mp4" controls width="600"></video>
+On Cherry Studio
+![演示动画](assets/demo.gif)
+
 ## Features
 
 ### Server Monitoring Tools
