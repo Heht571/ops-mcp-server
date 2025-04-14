@@ -112,12 +112,12 @@ uv pip install -r requirements.txt
       "autoApprove": []
     }
 ```
-
-## 开源协议
-本项目采用 [MIT 许可证](LICENSE)。
-
 ## 客户端使用说明
 本项目提供了一个交互式客户端 `client.py`，可以通过自然语言与 MCP 服务进行交互。
+
+### 客户端演示视频
+在 Terminal
+![演示动画](assets/client.gif)
 
 ### 安装客户端依赖
 客户端需要额外安装 `openai` 和 `rich` 库：
@@ -128,11 +128,11 @@ uv pip install openai rich
 ### 启动客户端
 使用以下命令启动客户端：
 ```bash
-uv run client.py "server.py的路径"
+uv run client.py [server.py的路径]
 ```
 例如：
 ```bash
-uv run client.py "./server_monitor.py"
+uv run client.py ./server_monitor.py
 ```
 
 ### 配置客户端
@@ -161,6 +161,10 @@ self.model = "您想使用的模型"
 - `quit` - 退出程序
 - `clear` - 清除对话历史
 - `model <名称>` - 切换模型
+
+## 开源协议
+本项目采用 [MIT 许可证](LICENSE)。
+
 
 ## 注意事项
 - 请确保远程服务器的 SSH 服务正常运行，并且你有相应的权限。

@@ -113,11 +113,12 @@ To add this project as an MCP server, add the following configuration to your se
     }
 ```
 
-## License
-This project is licensed under the [MIT License](LICENSE).
-
 ## Client Usage
 This project provides an interactive client `client.py` that allows you to interact with MCP services using natural language.
+
+### Client Demo Video
+On Terminal
+![演示动画](assets/client.gif)
 
 ### Installing Client Dependencies
 The client requires additional libraries `openai` and `rich`:
@@ -128,11 +129,11 @@ uv pip install openai rich
 ### Starting the Client
 Use the following command to start the client:
 ```bash
-uv run client.py "path/to/server.py"
+uv run client.py [path/to/server.py]
 ```
 For example:
 ```bash
-uv run client.py "./server_monitor.py"
+uv run client.py ./server_monitor.py
 ```
 
 ### Configuring the Client
@@ -161,6 +162,9 @@ The following commands are available in the client:
 - `quit` - Exit the program
 - `clear` - Clear conversation history
 - `model <name>` - Switch models
+
+## License
+This project is licensed under the [MIT License](LICENSE).
 
 ## Notes
 - Ensure the remote server's SSH service is running properly and you have appropriate permissions.
