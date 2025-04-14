@@ -90,7 +90,7 @@ uv pip install -r requirements.txt
       "args": [
         "--directory",
         "YOUR_PROJECT_PATH_HERE",  // Replace with your actual project path
-        "run", 
+        "run",
         "server_monitor.py"
       ],
       "env": {},
@@ -115,6 +115,52 @@ uv pip install -r requirements.txt
 
 ## 开源协议
 本项目采用 [MIT 许可证](LICENSE)。
+
+## 客户端使用说明
+本项目提供了一个交互式客户端 `client.py`，可以通过自然语言与 MCP 服务进行交互。
+
+### 安装客户端依赖
+客户端需要额外安装 `openai` 和 `rich` 库：
+```bash
+uv pip install openai rich
+```
+
+### 启动客户端
+使用以下命令启动客户端：
+```bash
+uv run client.py "server.py的路径"
+```
+例如：
+```bash
+uv run client.py "./server_monitor.py"
+```
+
+### 配置客户端
+在使用前，需要修改 `client.py` 中的以下配置：
+1. `api_key` - 设置为您的大模型 API 密钥
+2. `base_url` - 设置为您使用的大模型 API 地址
+3. `model` - 设置为您想使用的模型名称
+
+修改位置在 `client.py` 的 `MCPClient` 类初始化部分：
+```python
+# 初始化 OpenAI 客户端
+api_key = "您的API密钥"
+base_url="https://您的API地址"
+self.client = AsyncOpenAI(
+    base_url=base_url,
+    api_key=api_key,
+)
+
+# 设置 model
+self.model = "您想使用的模型"
+```
+
+### 客户端命令
+在客户端中可以使用以下命令：
+- `help` - 显示帮助信息
+- `quit` - 退出程序
+- `clear` - 清除对话历史
+- `model <名称>` - 切换模型
 
 ## 注意事项
 - 请确保远程服务器的 SSH 服务正常运行，并且你有相应的权限。

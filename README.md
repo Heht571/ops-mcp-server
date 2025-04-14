@@ -90,7 +90,7 @@ To add this project as an MCP server, add the following configuration to your se
       "args": [
         "--directory",
         "YOUR_PROJECT_PATH_HERE",  // Replace with your actual project path
-        "run", 
+        "run",
         "server_monitor.py"
       ],
       "env": {},
@@ -115,6 +115,52 @@ To add this project as an MCP server, add the following configuration to your se
 
 ## License
 This project is licensed under the [MIT License](LICENSE).
+
+## Client Usage
+This project provides an interactive client `client.py` that allows you to interact with MCP services using natural language.
+
+### Installing Client Dependencies
+The client requires additional libraries `openai` and `rich`:
+```bash
+uv pip install openai rich
+```
+
+### Starting the Client
+Use the following command to start the client:
+```bash
+uv run client.py "path/to/server.py"
+```
+For example:
+```bash
+uv run client.py "./server_monitor.py"
+```
+
+### Configuring the Client
+Before using, you need to modify the following configurations in `client.py`:
+1. `api_key` - Set to your LLM API key
+2. `base_url` - Set to your LLM API endpoint
+3. `model` - Set to the model name you want to use
+
+The configuration is located in the `MCPClient` class initialization section of `client.py`:
+```python
+# Initialize OpenAI client
+api_key = "YOUR_API_KEY"
+base_url="https://your-api-endpoint"
+self.client = AsyncOpenAI(
+    base_url=base_url,
+    api_key=api_key,
+)
+
+# Set model
+self.model = "your-preferred-model"
+```
+
+### Client Commands
+The following commands are available in the client:
+- `help` - Display help information
+- `quit` - Exit the program
+- `clear` - Clear conversation history
+- `model <name>` - Switch models
 
 ## Notes
 - Ensure the remote server's SSH service is running properly and you have appropriate permissions.
