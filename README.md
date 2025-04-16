@@ -5,7 +5,7 @@
 # ops-mcp-server Project
 
 ## Project Overview
-The ops-mcp-server is an IT operations management solution for the AI era. It achieves intelligent IT operations through the seamless integration of the Multi-Agent Collaboration Protocol (MCP) and Large Language Models (LLMs). By leveraging the power of LLMs and MCP's distributed architecture, it transforms traditional IT operations into an AI-driven experience, enabling automated server monitoring, intelligent anomaly detection, and context-aware troubleshooting. The system acts as a bridge between human operators and complex IT infrastructure, providing natural language interaction for tasks ranging from routine maintenance to complex problem diagnosis, while maintaining enterprise-grade security and scalability.
+The ops-mcp-server is an IT operations management solution for the AI era. It achieves intelligent IT operations through the seamless integration of the Model Context Protocol (MCP) and Large Language Models (LLMs). By leveraging the power of LLMs and MCP's distributed architecture, it transforms traditional IT operations into an AI-driven experience, enabling automated server monitoring, intelligent anomaly detection, and context-aware troubleshooting. The system acts as a bridge between human operators and complex IT infrastructure, providing natural language interaction for tasks ranging from routine maintenance to complex problem diagnosis, while maintaining enterprise-grade security and scalability.
 
 ### Key Highlights
 - **Real-time Monitoring**: Continuous monitoring of system resources, services, and performance metrics
