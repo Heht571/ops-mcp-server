@@ -2,8 +2,11 @@ import re
 from typing import List
 from network_tools.models.base_models import (
     NetworkDevice, SwitchPort, Route, ACLRule, VLAN, 
-    OpticalModule, NetworkDeviceType, NetworkVendor
+    OpticalModule, NetworkDeviceType, NetworkVendor,
+    LogEntry, LogAnalysisResult
 )
+from datetime import datetime
+import ipaddress
 
 class NetworkInspector:
     """网络设备解析器"""
@@ -59,6 +62,8 @@ class NetworkInspector:
             return NetworkVendor.HPE
         elif any(kw in output_lower for kw in ["zyxel"]):
             return NetworkVendor.ZYXEL
+        elif any(kw in output_lower for kw in ["zte", "zxr", "zxun", "zxa", "中兴"]):
+            return NetworkVendor.ZTE
         else:
             return NetworkVendor.UNKNOWN
     
@@ -484,4 +489,563 @@ class NetworkInspector:
             if not any(m["port"] == port for m in modules):
                 modules.append(module)
         
-        return modules 
+        return modules
+
+    @staticmethod
+    def parse_logs(output: str, vendor: str = "") -> List[LogEntry]:
+        """解析网络设备日志"""
+        logs = []
+        
+        # 根据厂商确定日志解析方法
+        if not vendor:
+            vendor = NetworkInspector.detect_vendor(output)
+        
+        if vendor == NetworkVendor.CISCO:
+            logs = NetworkInspector._parse_cisco_logs(output)
+        elif vendor == NetworkVendor.HUAWEI:
+            logs = NetworkInspector._parse_huawei_logs(output)
+        elif vendor == NetworkVendor.H3C:
+            logs = NetworkInspector._parse_h3c_logs(output)
+        elif vendor == NetworkVendor.JUNIPER:
+            logs = NetworkInspector._parse_juniper_logs(output)
+        elif vendor == NetworkVendor.FORTINET:
+            logs = NetworkInspector._parse_fortinet_logs(output)
+        elif vendor == NetworkVendor.ZTE:
+            logs = NetworkInspector._parse_zte_logs(output)
+        else:
+            # 通用日志解析方法
+            logs = NetworkInspector._parse_generic_logs(output)
+        
+        return logs
+    
+    @staticmethod
+    def _parse_cisco_logs(output: str) -> List[LogEntry]:
+        """解析思科设备日志"""
+        logs = []
+        
+        # 思科日志格式: Month Day Year HH:MM:SS timezone: %facility-severity-MNEMONIC: Message
+        # 例如: Jun 4 2023 10:15:22 UTC: %SYS-5-CONFIG_I: Configured from console by admin on vty0 (192.168.1.100)
+        pattern = r'(\w{3}\s+\d+\s+\d{4}\s+\d{2}:\d{2}:\d{2}).*?%(\w+)-(\d)-(\w+):\s+(.*)'
+        
+        for line in output.split('\n'):
+            if not line.strip():
+                continue
+                
+            match = re.search(pattern, line)
+            if match:
+                timestamp = match.group(1)
+                component = match.group(2)
+                log_level = match.group(3)
+                event_type = match.group(4)
+                message = match.group(5)
+                
+                log_entry = {
+                    "timestamp": timestamp,
+                    "log_level": log_level,
+                    "component": component,
+                    "message": message,
+                    "event_type": event_type,
+                    "source_ip": None,
+                    "username": None,
+                    "target": None
+                }
+                
+                # 提取源IP和用户名
+                ip_match = re.search(r'from\s+(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})', message)
+                if ip_match:
+                    log_entry["source_ip"] = ip_match.group(1)
+                
+                user_match = re.search(r'by\s+(\w+)', message)
+                if user_match:
+                    log_entry["username"] = user_match.group(1)
+                
+                logs.append(log_entry)
+            else:
+                # 尝试匹配其他思科日志格式
+                alt_match = re.search(r'(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}).*?(\w+):\s+(.*)', line)
+                if alt_match:
+                    logs.append({
+                        "timestamp": alt_match.group(1),
+                        "log_level": "info",
+                        "component": alt_match.group(2),
+                        "message": alt_match.group(3),
+                        "event_type": "system",
+                        "source_ip": None,
+                        "username": None,
+                        "target": None
+                    })
+        
+        return logs
+    
+    @staticmethod
+    def _parse_huawei_logs(output: str) -> List[LogEntry]:
+        """解析华为设备日志"""
+        logs = []
+        
+        # 华为日志格式: YYYY-MM-DD HH:MM:SS-timezone hostname %%modname/level/submodname(slot)[context]:message
+        # 例如: 2023-06-04 10:15:22-08:00 HUAWEI-Router %%01SHELL/5/CMDRECORD(l)[1]:command:display this by huawei(192.168.1.100)
+        pattern = r'(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}).*?%%(\w+)/(\d)/(\w+).*?:(.*)'
+        
+        for line in output.split('\n'):
+            if not line.strip():
+                continue
+                
+            match = re.search(pattern, line)
+            if match:
+                timestamp = match.group(1)
+                component = match.group(2)
+                log_level = match.group(3)
+                subcomponent = match.group(4)
+                message = match.group(5)
+                
+                log_entry = {
+                    "timestamp": timestamp,
+                    "log_level": log_level,
+                    "component": f"{component}/{subcomponent}",
+                    "message": message,
+                    "event_type": NetworkInspector._classify_event_type(message),
+                    "source_ip": None,
+                    "username": None,
+                    "target": None
+                }
+                
+                # 提取源IP和用户名
+                ip_match = re.search(r'\((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\)', message)
+                if ip_match:
+                    log_entry["source_ip"] = ip_match.group(1)
+                
+                user_match = re.search(r'by\s+(\w+)', message)
+                if user_match:
+                    log_entry["username"] = user_match.group(1)
+                
+                logs.append(log_entry)
+        
+        return logs
+    
+    @staticmethod
+    def _parse_h3c_logs(output: str) -> List[LogEntry]:
+        """解析H3C设备日志"""
+        logs = []
+        
+        # H3C日志格式: 通常与华为类似，但有细微差别
+        # 例如: 2023-06-04 10:15:22 H3C %%10SHELL/5/SHELL_LOGIN: admin(192.168.1.100) in unit1 login
+        pattern = r'(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}).*?%%(\d+)(\w+)/(\d)/(\w+):\s+(.*)'
+        
+        for line in output.split('\n'):
+            if not line.strip():
+                continue
+                
+            match = re.search(pattern, line)
+            if match:
+                timestamp = match.group(1)
+                unit = match.group(2)
+                component = match.group(3)
+                log_level = match.group(4)
+                event_type = match.group(5)
+                message = match.group(6)
+                
+                log_entry = {
+                    "timestamp": timestamp,
+                    "log_level": log_level,
+                    "component": component,
+                    "message": message,
+                    "event_type": event_type,
+                    "source_ip": None,
+                    "username": None,
+                    "target": None
+                }
+                
+                # 提取源IP和用户名
+                ip_match = re.search(r'(\w+)\((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\)', message)
+                if ip_match:
+                    log_entry["username"] = ip_match.group(1)
+                    log_entry["source_ip"] = ip_match.group(2)
+                
+                logs.append(log_entry)
+        
+        return logs
+    
+    @staticmethod
+    def _parse_juniper_logs(output: str) -> List[LogEntry]:
+        """解析Juniper设备日志"""
+        logs = []
+        
+        # Juniper日志格式: Month Day HH:MM:SS hostname process[pid]: %component:level: message
+        # 例如: Jun 4 10:15:22 juniper-router mgd[1234]: %DAEMON-6: User 'admin' authenticated from 192.168.1.100
+        pattern = r'(\w{3}\s+\d+\s+\d{2}:\d{2}:\d{2}).*?(\w+)\[\d+\]:\s+%(\w+)-(\d+):\s+(.*)'
+        
+        for line in output.split('\n'):
+            if not line.strip():
+                continue
+                
+            match = re.search(pattern, line)
+            if match:
+                timestamp = match.group(1)
+                process = match.group(2)
+                component = match.group(3)
+                log_level = match.group(4)
+                message = match.group(5)
+                
+                log_entry = {
+                    "timestamp": timestamp,
+                    "log_level": log_level,
+                    "component": f"{process}/{component}",
+                    "message": message,
+                    "event_type": NetworkInspector._classify_event_type(message),
+                    "source_ip": None,
+                    "username": None,
+                    "target": None
+                }
+                
+                # 提取源IP和用户名
+                ip_match = re.search(r'from\s+(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})', message)
+                if ip_match:
+                    log_entry["source_ip"] = ip_match.group(1)
+                
+                user_match = re.search(r"User\s+'(\w+)'", message)
+                if user_match:
+                    log_entry["username"] = user_match.group(1)
+                
+                logs.append(log_entry)
+        
+        return logs
+    
+    @staticmethod
+    def _parse_fortinet_logs(output: str) -> List[LogEntry]:
+        """解析Fortinet设备日志"""
+        logs = []
+        
+        # Fortinet日志格式较为复杂，通常包含多个字段
+        # 尝试匹配: date=YYYY-MM-DD time=HH:MM:SS ...其他字段...
+        pattern = r'date=(\d{4}-\d{2}-\d{2})\s+time=(\d{2}:\d{2}:\d{2}).*?level=(\w+).*?type=(\w+).*?user=\"?(\w*)\"?.*?(srcip=(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}))?.*?msg=\"(.*?)\"'
+        
+        for line in output.split('\n'):
+            if not line.strip():
+                continue
+                
+            match = re.search(pattern, line)
+            if match:
+                date = match.group(1)
+                time = match.group(2)
+                log_level = match.group(3)
+                event_type = match.group(4)
+                username = match.group(5)
+                source_ip = match.group(7)
+                message = match.group(8)
+                
+                log_entry = {
+                    "timestamp": f"{date} {time}",
+                    "log_level": log_level,
+                    "component": event_type,
+                    "message": message,
+                    "event_type": event_type,
+                    "source_ip": source_ip,
+                    "username": username if username else None,
+                    "target": None
+                }
+                
+                logs.append(log_entry)
+            else:
+                # 尝试其他格式
+                alt_pattern = r'id=(\d+).*?time=\"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\".*?level=\"(\w+)\".*?user=\"(\w*)\".*?src=(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})?.*?msg=\"(.*?)\"'
+                alt_match = re.search(alt_pattern, line)
+                if alt_match:
+                    logs.append({
+                        "timestamp": alt_match.group(2),
+                        "log_level": alt_match.group(3),
+                        "component": "system",
+                        "message": alt_match.group(6),
+                        "event_type": "system",
+                        "source_ip": alt_match.group(5),
+                        "username": alt_match.group(4) if alt_match.group(4) else None,
+                        "target": None
+                    })
+        
+        return logs
+    
+    @staticmethod
+    def _parse_zte_logs(output: str) -> List[LogEntry]:
+        """解析中兴设备日志"""
+        logs = []
+        
+        # 中兴设备日志格式: YYYY-MM-DD HH:MM:SS %%[模块名-级别-告警类型-标识码]:告警描述
+        # 例如: 2023-06-04 10:15:22 %%[SHELL-5-LOGIN-SUCCESS-5]:User admin login successfully from 192.168.1.100.
+        pattern = r'(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})\s+%%\[(\w+)-(\d+)-(\w+)(?:-\w+)*\]:(.*)'
+        
+        for line in output.split('\n'):
+            if not line.strip():
+                continue
+            
+            match = re.search(pattern, line)
+            if match:
+                timestamp = match.group(1)
+                component = match.group(2)
+                log_level = match.group(3)
+                event_type = match.group(4)
+                message = match.group(5)
+                
+                log_entry = {
+                    "timestamp": timestamp,
+                    "log_level": log_level,
+                    "component": component,
+                    "message": message,
+                    "event_type": event_type,
+                    "source_ip": None,
+                    "username": None,
+                    "target": None
+                }
+                
+                # 提取源IP和用户名
+                ip_match = re.search(r'from\s+(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})', message)
+                if ip_match:
+                    log_entry["source_ip"] = ip_match.group(1)
+                
+                user_match = re.search(r'[Uu]ser\s+(\w+)', message)
+                if user_match:
+                    log_entry["username"] = user_match.group(1)
+                
+                logs.append(log_entry)
+            else:
+                # 尝试匹配其他中兴日志格式
+                alt_pattern = r'(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})\s+(\w+)\s+(\w+):\s+(.*)'
+                alt_match = re.search(alt_pattern, line)
+                if alt_match:
+                    logs.append({
+                        "timestamp": alt_match.group(1),
+                        "log_level": "info",
+                        "component": alt_match.group(2),
+                        "message": alt_match.group(4),
+                        "event_type": NetworkInspector._classify_event_type(alt_match.group(4)),
+                        "source_ip": None,
+                        "username": None,
+                        "target": None
+                    })
+        
+        return logs
+    
+    @staticmethod
+    def _parse_generic_logs(output: str) -> List[LogEntry]:
+        """通用日志解析方法，尝试匹配常见模式"""
+        logs = []
+        
+        # 尝试匹配常见日志格式
+        patterns = [
+            # ISO标准时间戳格式 (2022-01-01T12:34:56)
+            r'(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}).*?(\w+)\s+(\w+):\s+(.*)',
+            # 标准日期时间格式 (YYYY-MM-DD HH:MM:SS)
+            r'(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}).*?(\w+).*?(\w+):\s+(.*)',
+            # 英文月份格式 (Jun 1 12:34:56)
+            r'(\w{3}\s+\d+\s+\d{2}:\d{2}:\d{2}).*?(\w+).*?(\w+):\s+(.*)',
+            # 简单时间格式 (HH:MM:SS)
+            r'(\d{2}:\d{2}:\d{2}).*?(\w+).*?(\w+):\s+(.*)'
+        ]
+        
+        for line in output.split('\n'):
+            if not line.strip():
+                continue
+            
+            for pattern in patterns:
+                match = re.search(pattern, line)
+                if match:
+                    timestamp = match.group(1)
+                    level_or_component = match.group(2)
+                    component_or_type = match.group(3)
+                    message = match.group(4)
+                    
+                    # 判断哪个是日志级别，哪个是组件
+                    log_level = "info"  # 默认值
+                    component = component_or_type
+                    
+                    if level_or_component.lower() in ["info", "warning", "error", "debug", "critical", "notice", "alert", "emergency"]:
+                        log_level = level_or_component.lower()
+                    else:
+                        component = level_or_component
+                    
+                    log_entry = {
+                        "timestamp": timestamp,
+                        "log_level": log_level,
+                        "component": component,
+                        "message": message,
+                        "event_type": NetworkInspector._classify_event_type(message),
+                        "source_ip": None,
+                        "username": None,
+                        "target": None
+                    }
+                    
+                    # 尝试提取额外信息
+                    ip_match = re.search(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})', message)
+                    if ip_match:
+                        try:
+                            # 验证是否为有效IP
+                            if ipaddress.ip_address(ip_match.group(1)):
+                                log_entry["source_ip"] = ip_match.group(1)
+                        except:
+                            pass
+                    
+                    user_match = re.search(r'user[:\s]+(\w+)', message, re.IGNORECASE)
+                    if not user_match:
+                        user_match = re.search(r'(\w+) logged in', message, re.IGNORECASE)
+                    if user_match:
+                        log_entry["username"] = user_match.group(1)
+                    
+                    logs.append(log_entry)
+                    break  # 找到匹配项后跳出内部循环
+        
+        return logs
+    
+    @staticmethod
+    def _classify_event_type(message: str) -> str:
+        """根据消息内容分类事件类型"""
+        message_lower = message.lower()
+        
+        if any(kw in message_lower for kw in ["login", "logged in", "authentication success", "authenticated", "user access"]):
+            return "auth_success"
+        elif any(kw in message_lower for kw in ["failed login", "authentication failed", "auth fail", "denied", "incorrect password"]):
+            return "auth_failure"
+        elif any(kw in message_lower for kw in ["configuration", "config", "configured", "changed", "modify", "commit"]):
+            return "config_change"
+        elif any(kw in message_lower for kw in ["error", "failure", "failed", "crash", "down"]):
+            return "error"
+        elif any(kw in message_lower for kw in ["warning", "warn"]):
+            return "warning"
+        elif any(kw in message_lower for kw in ["interface", "link", "port", "connection"]):
+            return "interface"
+        elif any(kw in message_lower for kw in ["system", "boot", "shutdown", "restart", "reload"]):
+            return "system"
+        elif any(kw in message_lower for kw in ["security", "attack", "violation", "blocked"]):
+            return "security"
+        else:
+            return "info"
+    
+    @staticmethod
+    def analyze_device_logs(logs: List[LogEntry]) -> LogAnalysisResult:
+        """分析设备日志"""
+        # 初始化分析结果
+        result = {
+            "log_count": len(logs),
+            "auth_success_count": 0,
+            "auth_failure_count": 0,
+            "config_change_count": 0,
+            "system_events_count": 0,
+            "error_events_count": 0,
+            "warning_events_count": 0,
+            "unusual_access_ips": [],
+            "unusual_access_times": [],
+            "top_users": [],
+            "time_distribution": {},
+            "recent_config_changes": []
+        }
+        
+        # 初始化统计数据
+        user_access_count = {}
+        ip_access_count = {}
+        hour_distribution = {f"{h:02d}": 0 for h in range(24)}
+        config_changes = []
+        
+        # 业务时间范围（非工作时间检测）
+        business_hours_start = 9  # 早上9点
+        business_hours_end = 18   # 晚上6点
+        
+        # 遍历分析日志
+        for log in logs:
+            # 按事件类型分类统计
+            event_type = log.get("event_type", "")
+            if event_type == "auth_success":
+                result["auth_success_count"] += 1
+            elif event_type == "auth_failure":
+                result["auth_failure_count"] += 1
+            elif event_type == "config_change":
+                result["config_change_count"] += 1
+                # 记录配置变更
+                config_changes.append({
+                    "timestamp": log.get("timestamp", ""),
+                    "user": log.get("username", "unknown"),
+                    "message": log.get("message", "")
+                })
+            elif event_type == "system":
+                result["system_events_count"] += 1
+            
+            # 按日志级别统计
+            log_level = log.get("log_level", "")
+            if log_level in ["error", "critical", "alert", "emergency"]:
+                result["error_events_count"] += 1
+            elif log_level == "warning":
+                result["warning_events_count"] += 1
+            
+            # 用户访问统计
+            username = log.get("username")
+            if username:
+                if username not in user_access_count:
+                    user_access_count[username] = 0
+                user_access_count[username] += 1
+            
+            # IP访问统计
+            source_ip = log.get("source_ip")
+            if source_ip:
+                if source_ip not in ip_access_count:
+                    ip_access_count[source_ip] = 0
+                ip_access_count[source_ip] += 1
+            
+            # 时间分布统计
+            try:
+                timestamp = log.get("timestamp", "")
+                # 尝试不同的时间格式解析
+                dt = None
+                formats = [
+                    "%Y-%m-%d %H:%M:%S",
+                    "%Y-%m-%dT%H:%M:%S",
+                    "%b %d %H:%M:%S",
+                    "%b %d %Y %H:%M:%S"
+                ]
+                
+                for fmt in formats:
+                    try:
+                        dt = datetime.strptime(timestamp, fmt)
+                        break
+                    except ValueError:
+                        continue
+                
+                if dt:
+                    hour = dt.hour
+                    hour_key = f"{hour:02d}"
+                    hour_distribution[hour_key] = hour_distribution.get(hour_key, 0) + 1
+                    
+                    # 检测非工作时间的访问
+                    if (hour < business_hours_start or hour >= business_hours_end) and event_type == "auth_success":
+                        result["unusual_access_times"].append({
+                            "timestamp": timestamp,
+                            "user": username or "unknown",
+                            "source_ip": source_ip or "unknown",
+                            "hour": hour
+                        })
+            except Exception:
+                pass
+        
+        # 处理统计结果
+        # 1. 排序用户访问次数
+        sorted_users = sorted(
+            [{"username": k, "access_count": v} for k, v in user_access_count.items()],
+            key=lambda x: x["access_count"],
+            reverse=True
+        )
+        result["top_users"] = sorted_users[:10]  # 取前10名
+        
+        # 2. 排序配置变更，取最近的
+        result["recent_config_changes"] = sorted(
+            config_changes,
+            key=lambda x: x["timestamp"],
+            reverse=True
+        )[:20]  # 取最近20条
+        
+        # 3. 检测异常IP (根据访问频率，简单实现)
+        ip_threshold = 10  # 设定阈值，访问超过此次数的IP视为异常
+        result["unusual_access_ips"] = [
+            {"ip": ip, "count": count}
+            for ip, count in ip_access_count.items()
+            if count > ip_threshold
+        ]
+        
+        # 4. 设置时间分布
+        result["time_distribution"] = hour_distribution
+        
+        return result 

@@ -3,3 +3,6 @@ paramiko>=3.5.1
 psutil>=7.0.0
 pydantic>=2.0.0
 typing-extensions>=4.0.0
+ipaddress>=1.0.23
+netaddr>=0.8.0
+pytz>=2022.7

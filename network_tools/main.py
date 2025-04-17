@@ -4,6 +4,9 @@ from mcp.server.fastmcp import FastMCP
 from .tools.device_tools import identify_network_device, check_switch_ports, check_router_routes, backup_network_config
 from .tools.config_tools import check_acl_config, inspect_vlans
 from .tools.performance_tools import check_optical_modules, check_device_performance
+from .tools.log_tools import analyze_device_logs
+from .tools.session_tools import check_device_sessions
+from .tools.security_tools import analyze_security_policy
 from .managers.ssh_manager import SSHManager
 
 # 配置日志
@@ -22,6 +25,9 @@ mcp.add_tool(check_acl_config)
 mcp.add_tool(inspect_vlans)
 mcp.add_tool(check_optical_modules)
 mcp.add_tool(check_device_performance)
+mcp.add_tool(analyze_device_logs)
+mcp.add_tool(check_device_sessions)
+mcp.add_tool(analyze_security_policy)
 
 if __name__ == "__main__":
     try:
