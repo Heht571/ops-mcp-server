@@ -60,6 +60,14 @@ On Cherry Studio
 ## Installation
 This project uses [`uv`](https://github.com/astral-sh/uv) for Python dependency and virtual environment management.
 
+### Installing via Smithery
+
+To install mcptest for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@Heht571/ops-mcp-server):
+
+```bash
+npx -y @smithery/cli install @Heht571/ops-mcp-server --client claude
+```
+
 ### 1. Install uv
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
