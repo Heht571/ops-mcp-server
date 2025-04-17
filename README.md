@@ -52,6 +52,8 @@ On Cherry Studio
 - **VLAN Inspection**: Check switch VLAN configurations and ports
 - **Optical Module Detection**: Check optical module status, power levels, temperature and other key metrics, supporting multiple vendors
 - **Device Performance Monitoring**: Monitor network device CPU, memory, temperature, interface traffic and buffer utilization
+- **Device Session Analysis**: Monitor and analyze device sessions, identifying active connections, protocols, and potential security risks
+- **Security Policy Analysis**: Analyze security policies on network devices, identify shadowed rules, overly permissive rules, and optimization opportunities
 
 ### Additional Features
 - **Tool Listing**: List all available tools and their descriptions
