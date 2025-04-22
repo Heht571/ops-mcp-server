@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  server_monitor_sse:
+    build:
+      context: ..
+      dockerfile: server_monitor_sse/Dockerfile
+    container_name: server_monitor_sse
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    volumes:
+      - ./logs:/root/ops-mcp-server/server_monitor_sse/logs:Z
+    environment:
+      - TZ=Asia/Shanghai
+      - PYTHONUNBUFFERED=1
+      - PYTHONIOENCODING=UTF-8
+    # 健康检查已移除

@@ -22,7 +22,6 @@ ops-mcp-server 是 AI 时代的 IT 运营管理解决方案。它通过模型上
 ## 功能特性
 
 ### 服务器监控工具
-- **获取内存信息**：获取本地服务器内存信息
 - **远程服务器巡检**：执行远程服务器巡检，包括CPU、内存、磁盘等模块
 - **系统负载监控**：获取系统负载信息
 - **进程监控**：监控远程服务器进程，返回占用资源最多的进程
@@ -83,7 +82,59 @@ uv pip install -r requirements.txt
 
 注：依赖信息可在 `pyproject.toml` 文件中查看。
 
-## MCP服务器配置
+## SSE远程部署方式
+
+### 使用 UV 环境部署
+
+1. 激活 UV 环境
+   ```bash
+   # 创建虚拟环境（如果尚未创建）
+   uv venv
+   # 激活虚拟环境
+   source .venv/bin/activate
+   ```
+
+2. 安装依赖
+   ```bash
+   # 进入 server_monitor_sse 目录
+   cd server_monitor_sse
+   # 安装依赖
+   pip install -r requirements.txt
+   ```
+
+3. 启动服务
+   ```bash
+   # 返回到 ops-mcp-server 目录
+   cd ..
+   # 启动服务
+   uv run server_monitor_sse --transport sse --port 8000
+   ```
+
+### 使用 Docker Compose 部署
+
+1. 确保已安装 Docker 和 Docker Compose
+
+2. 进入 server_monitor_sse 目录
+   ```bash
+   cd server_monitor_sse
+   ```
+
+3. 使用 Docker Compose 启动服务
+   ```bash
+   docker compose up -d
+   ```
+
+4. 查看服务状态
+   ```bash
+   docker compose ps
+   ```
+
+5. 查看日志
+   ```bash
+   docker compose logs -f
+   ```
+
+## 本地MCP服务器配置（Stdio）
 要将此项目添加为MCP服务器，请在配置文件中添加以下配置：
 
 ```json

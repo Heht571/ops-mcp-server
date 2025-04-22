@@ -22,7 +22,6 @@ On Cherry Studio
 ## Features
 
 ### Server Monitoring Tools
-- **Get Memory Info**: Get local server memory information
 - **Remote Server Inspection**: Perform remote server inspection including CPU, memory, disk and other modules
 - **System Load Monitoring**: Get system load information
 - **Process Monitoring**: Monitor remote server processes, return top resource-consuming processes
@@ -83,7 +82,59 @@ uv pip install -r requirements.txt
 
 Note: Dependency information can be found in the `pyproject.toml` file.
 
-## MCP Server Configuration
+## SSE Remote Deployment
+
+### Using UV Environment
+
+1. Activate UV environment
+   ```bash
+   # Create virtual environment (if not already created)
+   uv venv
+   # Activate virtual environment
+   source .venv/bin/activate
+   ```
+
+2. Install dependencies
+   ```bash
+   # Navigate to server_monitor_sse directory
+   cd server_monitor_sse
+   # Install dependencies
+   pip install -r requirements.txt
+   ```
+
+3. Start the service
+   ```bash
+   # Return to ops-mcp-server directory
+   cd ..
+   # Start the service
+   uv run server_monitor_sse --transport sse --port 8000
+   ```
+
+### Using Docker Compose
+
+1. Ensure Docker and Docker Compose are installed
+
+2. Navigate to server_monitor_sse directory
+   ```bash
+   cd server_monitor_sse
+   ```
+
+3. Start the service with Docker Compose
+   ```bash
+   docker compose up -d
+   ```
+
+4. Check service status
+   ```bash
+   docker compose ps
+   ```
+
+5. View logs
+   ```bash
+   docker compose logs -f
+   ```
+
+## Local MCP Server Configuration（Stdio）
 To add this project as an MCP server, add the following configuration to your settings file:
 
 ```json
